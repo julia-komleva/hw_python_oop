@@ -9,13 +9,13 @@ class Calculator:
     def add_record(self, record):
         self.records.append(record)
 
-    def get_balance(self):
+    def get_today_balance(self):
         return self.limit - self.get_today_stats()
 
     def get_today_stats(self):
         today = dt.date.today()
-        return sum([record.amount for record in self.records
-                    if record.date == today])
+        return sum(record.amount for record in self.records
+                   if record.date == today)
 
     def get_week_stats(self):
         today = dt.date.today()
@@ -40,7 +40,7 @@ class Record:
 class CaloriesCalculator(Calculator):
 
     def get_calories_remained(self):
-        balance = self.get_balance()
+        balance = self.get_today_balance()
         if balance > 0:
             return ('Сегодня можно съесть что-нибудь ещё, '
                     f'но с общей калорийностью не более {balance} кКал')
@@ -54,13 +54,14 @@ class CashCalculator(Calculator):
 
     def get_today_cash_remained(self, currency):
 
+        balance = self.get_today_balance()
+
+        if balance == 0:
+            return 'Денег нет, держись'
+
         currencies = {'usd': (self.USD_RATE, 'USD'),
                       'eur': (self.EURO_RATE, 'Euro'),
                       'rub': (self.RUB_RATE, 'руб')}
-
-        balance = self.limit - self.get_today_stats()
-        if balance == 0:
-            return 'Денег нет, держись'
 
         currency_rate, currency_name = currencies[currency]
         balance_in_currency = round(balance / currency_rate, 2)
@@ -68,7 +69,8 @@ class CashCalculator(Calculator):
         if balance_in_currency > 0:
             return (f'На сегодня осталось {balance_in_currency} '
                     f'{currency_name}')
-        else:
-            return (f'Денег нет, держись: твой долг - '
-                    f'{abs(balance_in_currency)}'
-                    f' {currency_name}')
+
+        balance_in_currency = abs(balance_in_currency)
+        return ('Денег нет, держись: твой долг - '
+                f'{balance_in_currency}'
+                f' {currency_name}')
