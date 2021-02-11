@@ -9,30 +9,26 @@ class Calculator:
     def add_record(self, record):
         self.records.append(record)
 
+    def get_balance(self):
+        return self.limit - self.get_today_stats()
+
     def get_today_stats(self):
-        stats = 0
         today = dt.date.today()
-        for record in self.records:
-            if record.date == today:
-                stats += record.amount
-        return stats
+        return sum([record.amount for record in self.records if record.date == today])
 
     def get_week_stats(self):
-        stats = 0
         today = dt.date.today()
-        for record in self.records:
-            if today >= record.date >= today - dt.timedelta(days=7):
-                stats += record.amount
-        return stats
+        start_date = today - dt.timedelta(days=7)
+        return sum([record.amount for record in self.records if today >= record.date >= start_date])
 
 
 class Record:
-    def __init__(self, amount=0, date=None, comment='comment'):
+    def __init__(self, amount, comment, date=None):
         self.amount = amount
-        if date:
-            self.date = dt.datetime.strptime(date, '%d.%m.%Y').date()
-        else:
+        if date is None:
             self.date = dt.date.today()
+        else:
+            self.date = dt.datetime.strptime(date, '%d.%m.%Y').date()
         self.comment = comment
 
     def __str__(self):
@@ -42,12 +38,11 @@ class Record:
 class CaloriesCalculator(Calculator):
 
     def get_calories_remained(self):
-        balance = self.limit - self.get_today_stats()
+        balance = self.get_balance()
         if balance > 0:
-            return (f'Сегодня можно съесть что-нибудь ещё, '
+            return ('Сегодня можно съесть что-нибудь ещё, '
                     f'но с общей калорийностью не более {balance} кКал')
-        else:
-            return 'Хватит есть!'
+        return 'Хватит есть!'
 
 
 class CashCalculator(Calculator):
@@ -56,40 +51,22 @@ class CashCalculator(Calculator):
     RUB_RATE = 1
 
     def get_today_cash_remained(self, currency):
-        # to avoid if statements
-        currency_rates = {'usd': self.USD_RATE,
-                          'eur': self.EURO_RATE,
-                          'rub': self.RUB_RATE}
 
-        # output format requirements
-        currency_names = {'usd': 'USD', 'eur': 'Euro', 'rub': 'руб'}
+        currencies = {'usd': (self.USD_RATE, 'USD'),
+                      'eur': (self.EURO_RATE, 'Euro'),
+                      'rub': (self.RUB_RATE, 'руб')}
 
         balance = self.limit - self.get_today_stats()
-        limit_in_currency = round(balance / currency_rates[currency], 2)
-
-        if limit_in_currency > 0:
-            return (f'На сегодня осталось {limit_in_currency} '
-                    f'{currency_names[currency]}')
-        elif limit_in_currency == 0:
+        if balance == 0:
             return 'Денег нет, держись'
+
+        balance_in_currency = round(balance / currencies[currency][0], 2)
+        currency_name = currencies[currency][1]
+
+        if balance_in_currency > 0:
+            return (f'На сегодня осталось {balance_in_currency} '
+                    f'{currency_name}')
         else:
-            return (f'Денег нет, держись: твой долг - {abs(limit_in_currency)}'
-                    f' {currency_names[currency]}')
-
-
-cash_calculator = CashCalculator(5000)
-cash_calculator.add_record(Record(amount=145, comment='кофе'))
-cash_calculator.add_record(Record(amount=300, comment='Серёге за обед'))
-cash_calculator.add_record(Record(amount=3000,
-                                  comment='бар в Танин др',
-                                  date='08.11.2019'))
-cash_calculator.add_record(Record(amount=3000,
-                                  comment='др',
-                                  date='08.02.2021'))
-
-print(cash_calculator.get_today_cash_remained('rub'))
-print(cash_calculator.get_today_cash_remained('eur'))
-print(cash_calculator.get_today_cash_remained('usd'))
-
-print(cash_calculator.get_today_stats())
-print(cash_calculator.get_week_stats())
+            return (f'Денег нет, держись: твой долг - '
+                    f'{abs(balance_in_currency)}'
+                    f' {currency_name}')
