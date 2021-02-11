@@ -62,8 +62,8 @@ class CashCalculator(Calculator):
         if balance == 0:
             return 'Денег нет, держись'
 
-        balance_in_currency = round(balance / currencies[currency][0], 2)
-        currency_name = currencies[currency][1]
+        currency_rate, currency_name = currencies[currency]
+        balance_in_currency = round(balance / currency_rate, 2)
 
         if balance_in_currency > 0:
             return (f'На сегодня осталось {balance_in_currency} '
