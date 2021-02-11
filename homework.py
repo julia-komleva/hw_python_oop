@@ -14,12 +14,14 @@ class Calculator:
 
     def get_today_stats(self):
         today = dt.date.today()
-        return sum([record.amount for record in self.records if record.date == today])
+        return sum([record.amount for record in self.records
+                    if record.date == today])
 
     def get_week_stats(self):
         today = dt.date.today()
         start_date = today - dt.timedelta(days=7)
-        return sum([record.amount for record in self.records if today >= record.date >= start_date])
+        return sum([record.amount for record in self.records
+                    if today >= record.date >= start_date])
 
 
 class Record:
