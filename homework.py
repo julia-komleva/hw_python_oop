@@ -62,8 +62,14 @@ class CashCalculator(Calculator):
         currencies = {'usd': (self.USD_RATE, 'USD'),
                       'eur': (self.EURO_RATE, 'Euro'),
                       'rub': (self.RUB_RATE, 'руб')}
+        try:
+            currency_rate, currency_name = currencies[currency]
+        except KeyError:
+            return 'Unknown currency'
 
-        currency_rate, currency_name = currencies[currency]
+        # currency_rate, currency_name = currencies.get(currency,
+        #                                              currencies['rub'])
+
         balance_in_currency = round(balance / currency_rate, 2)
 
         if balance_in_currency > 0:
