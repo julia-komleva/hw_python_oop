@@ -20,8 +20,8 @@ class Calculator:
     def get_week_stats(self):
         today = dt.date.today()
         start_date = today - dt.timedelta(days=7)
-        return sum([record.amount for record in self.records
-                    if today >= record.date >= start_date])
+        return sum(record.amount for record in self.records
+                   if today >= record.date >= start_date)
 
 
 class Record:
@@ -66,9 +66,6 @@ class CashCalculator(Calculator):
             currency_rate, currency_name = currencies[currency]
         except KeyError:
             return 'Unknown currency'
-
-        # currency_rate, currency_name = currencies.get(currency,
-        #                                              currencies['rub'])
 
         balance_in_currency = round(balance / currency_rate, 2)
 
